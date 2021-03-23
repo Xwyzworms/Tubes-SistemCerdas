@@ -103,7 +103,7 @@ class Population:
         yTrue_mean : np.float = np.mean(yTrue) 
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
-        SSR : np.float = np.sum(np.array([ytrue - ypred] ** 2 for ytrue,ypred in zip(yTrue,predicted)),axis = None)
+        SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
         Rsquared : np.float = 1 - (SSR / SST) * 100
 
         SSE : np.float = SSR / len(yTrue)
