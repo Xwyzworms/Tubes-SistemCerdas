@@ -1,5 +1,6 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, SupportsFloat
 import numpy as np
+from random import sample,random
 
 def generate_data(size : int = 100,coefs :int = 4) -> np.array:
     """
@@ -38,7 +39,7 @@ def linReg(inputs : np.array , outputs : np.array) -> Dict[str,Any]:
     
     SST : np.float = np.sum(np.array([(i - Y_mean) ** 2 for i in Y]),axis=None)
     SSR : np.float = np.sum(np.array([(y - ypred)**2 for y,ypred in zip(Y,yPred)]),axis= None)
-    Rsquared : np.float = 1 - (SSR / SST) * 100
+    Rsquared : np.float = (1 - (SSR / SST)) * 100
     SSE = (SSR / len(Y))
 
     info["Rsquared"] = Rsquared
@@ -64,18 +65,19 @@ def terminate_GA(best : Dict[str,Any]) -> bool:
 
 class Population:
     
-    def __init__(self,TotalSize,TotalIndividu : int) -> None:
-        self.Totalgenome: int = TotalIndividu
-        self.totalSize : int =TotalSize
+    def __init__(self,TotalSize,Totalgenome: int) -> None:
+        self.Totalgenome: int = Totalgenome
+        self.totalSize : int = TotalSize
+        self.bestIndividuals : List =[]
 
     def createIndividu(self) -> np.array:
         """
-        Create Individu using Binary 
+        Create Individu using Real Numbers
 
         Returns:
-            List[int]: binary sequence [0,1,0,1 ....] 
+            List[int]: binary sequence
         """
-        return np.random.choice([0,1],size=self.Totalgenome)
+        return np.random.normal(size=self.Totalgenome)
     
     def createPopulation(self) -> List[np.array] :
         """
@@ -86,7 +88,7 @@ class Population:
         """
         return [self.createIndividu() for _ in range(self.totalSize)]
    
-    def fitness(self, individual : List[int], inputs : np.array, yTrue : np.array) -> Dict[str,Any]:
+    def fitness(self, individual : List[float], inputs : np.array, yTrue : np.array) -> Dict[str,Any]:
         """
         
         Fitness current Individual
@@ -99,12 +101,13 @@ class Population:
             Dict[str,Any]: [description]
         """
         info : Dict[str,Any] = {}
-        predicted : np.array = np.dot(np.array(individual), inputs)
+
+        predicted : np.array = np.dot(inputs,individual)
         yTrue_mean : np.float = np.mean(yTrue) 
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
         SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
-        Rsquared : np.float = 1 - (SSR / SST) * 100
+        Rsquared : np.float = (1 - (SSR / SST))
 
         SSE : np.float = SSR / len(yTrue)
 
@@ -113,6 +116,47 @@ class Population:
         info["error"] = SSE
 
         return info
+    
+    def evaluate_population(self,pop : List[np.array],inputs : np.array , yTrue:np.array, selectionSize : int) -> List[Dict[str,Any]]:
+        """
+        
+        Function to evaluate the best individual from current population
+
+        Args:
+            pop (List[np.array]): List of Individuals 
+
+        Returns:
+            List[float]: BEst Individuals from the Population 
+        """
+
+        fitness_list : List[Dict[str,Any]] = [self.fitness(individual, inputs, yTrue) for individual in pop]
+        error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["error"])
+        best_individuals = error_list[: selectionSize]
+        self.bestIndividuals.append(best_individuals[0]["coeff"])
+        
+        print(f"Error {best_individuals[0]['error']} \n RSquared {best_individuals[0]['Rsquared']}")
+
+        return best_individuals
+
+    def mutate(self,individual : List[float], probabilityMutating : float) -> List[float]:
+        indx : List[int] = [i for i in range(len(individual))]
+
+        totalMutatedGens : int = int(probabilityMutating * len(individual))
+        indx_toMutate : List[int] = sample(indx,k = totalMutatedGens)
+        for ind in indx_toMutate:
+            choice = np.random.choice([-1,1])
+            gene_transform : float = choice*random()
+
+            individual[ind] = individual[ind] + gene_transform
+        return individual
+        
+
+
+
 if __name__ == "__main__":
-    pop= Population(10,5)
-    print(pop.createPopulation())
+    x,y = generate_data(100)
+    pop =Population(10,4)
+    population = pop.createPopulation()
+    for i in range(10):
+        individual = pop.createIndividu()
+        pop.mutate(individual,0.25)
