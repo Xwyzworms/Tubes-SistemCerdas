@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Optional, SupportsFloat
+from typing import Any, Dict, List, Optional,Set, Tuple 
 import numpy as np
 from random import sample,random
+from math import floor
 
 def generate_data(size : int = 100,coefs :int = 4) -> np.array:
     """
@@ -50,7 +51,7 @@ def linReg(inputs : np.array , outputs : np.array) -> Dict[str,Any]:
 
 def terminate_GA(best : Dict[str,Any]) -> bool:
     """
-     Terminate the Genetic Algorithm if the RSquared > 98.0
+     Terminate the Genetic Algorithm if the RSquared > 0.98 < 0- 1 > 
 
     Args:
         best (Dict[str,Any]): dict Of individual Information
@@ -128,7 +129,6 @@ class Population:
         Returns:
             List[float]: BEst Individuals from the Population 
         """
-
         fitness_list : List[Dict[str,Any]] = [self.fitness(individual, inputs, yTrue) for individual in pop]
         error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["error"])
         best_individuals = error_list[: selectionSize]
@@ -139,24 +139,58 @@ class Population:
         return best_individuals
 
     def mutate(self,individual : List[float], probabilityMutating : float) -> List[float]:
+        """
+        
+        Ini Fungsinya lakuin mutasi , dah taulah mutasi mah
+
+        Args:
+            individual (List[float]): [description]
+            probabilityMutating (float): [description]
+
+        Returns:
+            List[float]: [description]
+        """
         indx : List[int] = [i for i in range(len(individual))]
 
         totalMutatedGens : int = int(probabilityMutating * len(individual))
         indx_toMutate : List[int] = sample(indx,k = totalMutatedGens)
         for ind in indx_toMutate:
-            choice = np.random.choice([-1,1])
+            choice : np.int = np.random.choice([-1,1])
             gene_transform : float = choice*random()
 
             individual[ind] = individual[ind] + gene_transform
         return individual
         
+    def crossover(self, parent1 : Dict[str,Any], parent2 : Dict[str,Any]):
+        """
+        Intinya mantap mantapan Ngasilin Anak , dah gitu konsepnya
+        Args:
+            parent1 (Dict[str,Any]): [description]
+            parent2 (Dict[str,Any]): [description]
+        """
+        
+        anak_haram : Dict[int,Any] = {}
+        print(self.Totalgenome)
+        index : List[int] = [i for i in range( self.Totalgenome )]
+        indexRandomize : List[int] = sample(index, floor(0.5 * self.Totalgenome))
+        IndexNotInRandomize : List[int] = [i for i in index if i not in indexRandomize]
 
+        getCromosomeFromParent1 : List[Any] = [[i,parent1['coeff'][i]] for i in indexRandomize]
+        getCromosomeFromParent2 : List[Any] = [[i,parent2["coeff"][i]] for i in IndexNotInRandomize]
+        
+        anak_haram.update({key :value for (key,value) in getCromosomeFromParent1})
+        anak_haram.update({key : value for(key,value) in getCromosomeFromParent2})
+    
+        return [anak_haram[i] for i in index]
 
 
 if __name__ == "__main__":
+
     x,y = generate_data(100)
     pop =Population(10,4)
     population = pop.createPopulation()
-    for i in range(10):
-        individual = pop.createIndividu()
-        pop.mutate(individual,0.25)
+    individual = pop.createIndividu()
+    parent1 = pop.fitness(individual,x,y)
+    parent2 = pop.fitness(individual,x,y)
+    lol = pop.crossover(parent1,parent2)
+    print(lol)
