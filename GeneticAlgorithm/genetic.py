@@ -114,11 +114,11 @@ class Population:
 
         info["Rsquared"] = Rsquared
         info["coeff"] = individual
-        info["error"] = SSE
+        info["error"] = (1 / SSE) + 0.0001
 
         return info
     
-    def evaluate_population(self,pop : List[np.array],inputs : np.array , yTrue:np.array, selectionSize : int) -> List[Dict[str,Any]]:
+    def evaluate_population(self,pop : List[np.array],inputs : np.array , yTrue:np.array, selectionSize : int) :
         """
         
         Function to evaluate the best individual from current population
@@ -127,16 +127,15 @@ class Population:
             pop (List[np.array]): List of Individuals 
 
         Returns:
-            List[float]: BEst Individuals from the Population 
+            None
         """
         fitness_list : List[Dict[str,Any]] = [self.fitness(individual, inputs, yTrue) for individual in pop]
         error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["error"])
         best_individuals = error_list[: selectionSize]
-        self.bestIndividuals.append(best_individuals[0]["coeff"])
+        self.bestIndividuals.append(best_individuals)
         
         print(f"Error {best_individuals[0]['error']} \n RSquared {best_individuals[0]['Rsquared']}")
 
-        return best_individuals
 
     def mutate(self,individual : List[float], probabilityMutating : float) -> List[float]:
         """
@@ -170,7 +169,6 @@ class Population:
         """
         
         anak_haram : Dict[int,Any] = {}
-        print(self.Totalgenome)
         index : List[int] = [i for i in range( self.Totalgenome )]
         indexRandomize : List[int] = sample(index, floor(0.5 * self.Totalgenome))
         IndexNotInRandomize : List[int] = [i for i in index if i not in indexRandomize]
@@ -183,14 +181,30 @@ class Population:
     
         return [anak_haram[i] for i in index]
 
+    def create_new_generation(self,probabilityMutating : float) -> List[List[float]]:
+        """
+        Create new population using the best individuals
+
+        Args:
+            best_individuals (List[float]): [description]
+        """
+        pasangan_sah = [sample(self.bestIndividuals[0],2) for _ in range( self.totalSize)]
+
+        crossOverered_parents = [self.crossover(pasangan[0],pasangan[1]) for pasangan in pasangan_sah]
+        pasangan_sah_indx = [i for i in range(self.totalSize)]
+        pasanganCalonMutasi = sample(pasangan_sah_indx,floor(probabilityMutating * self.totalSize))
+
+        PasanganMutasi = [[i,self.mutate(crossOverered_parents[i],probabilityMutating)] for i in pasanganCalonMutasi]
+        for anakMutasi in PasanganMutasi:
+            crossOverered_parents[anakMutasi[0]] = anakMutasi[1]
+        return crossOverered_parents
 
 if __name__ == "__main__":
-
     x,y = generate_data(100)
     pop =Population(10,4)
     population = pop.createPopulation()
     individual = pop.createIndividu()
-    parent1 = pop.fitness(individual,x,y)
-    parent2 = pop.fitness(individual,x,y)
-    lol = pop.crossover(parent1,parent2)
-    print(lol)
+    #parent1 = pop.fitness(individual,x,y)
+    #parent2 = pop.fitness(individual,x,y)
+    pop.evaluate_population(population,x,y,5)
+    pop.create_new_generation(0.25)
