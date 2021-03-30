@@ -58,11 +58,13 @@ class Population:
             Dict[str,Any]: [description]
         """
         info : Dict[str,Any] = {}
-        predicted : np.array = np.dot(inputs,individual)
+        bias : np.float = 0
+        predicted : np.array =  bias + np.dot(inputs,individual) 
         yTrue_mean : np.float = np.mean(yTrue) 
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
         SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
+        bias :np.float = np.mean(np.sqrt(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)])))
         RMSE : np.float = np.sqrt(SSR/ len(y))
         Rsquared : np.float = (1 - (SSR / SST))
 
@@ -74,6 +76,7 @@ class Population:
         info["error"] = SSE
         info["RMSE"] = RMSE 
         info["divByOne"] = oneDivError
+        info["bias"] = bias 
 
         return info
     
@@ -183,7 +186,7 @@ if __name__ == "__main__":
     print("Nilai x : ",x[0])
     print("Nilai Y : ",y[0])
     
-    result = np.dot(x[0],pop.bestIndividuals[0][0]["coeff"])
+    result = pop.bestIndividuals[0][0]['bias'] + np.dot(x[0],pop.bestIndividuals[0][0]["coeff"])
     print("Predicted = ",result)
     print(pop.bestIndividuals[0][0])
 
