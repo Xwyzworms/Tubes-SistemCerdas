@@ -63,13 +63,17 @@ class Population:
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
         SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
+        RMSE : np.float = np.sqrt(SSR/ len(y))
         Rsquared : np.float = (1 - (SSR / SST))
 
         SSE : np.float = SSR / len(y)
+        oneDivError : np.float = 1 / SSE
 
         info["Rsquared"] = Rsquared
         info["coeff"] = individual
         info["error"] = SSE
+        info["RMSE"] = RMSE 
+        info["divByOne"] = oneDivError
 
         return info
     
@@ -181,6 +185,7 @@ if __name__ == "__main__":
     
     result = np.dot(x[0],pop.bestIndividuals[0][0]["coeff"])
     print("Predicted = ",result)
+    print(pop.bestIndividuals[0][0])
 
     #parent1 = pop.fitness(individual,x,y)
     #parent2 = pop.fitness(individual,x,y)
