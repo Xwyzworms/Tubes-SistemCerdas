@@ -70,6 +70,7 @@ class Population:
         self.Totalgenome: int = Totalgenome
         self.totalSize : int = TotalSize
         self.bestIndividuals : List =[]
+        self.population = []
 
     def createIndividu(self) -> np.array:
         """
@@ -80,16 +81,16 @@ class Population:
         """
         return np.random.normal(size=self.Totalgenome)
     
-    def createPopulation(self) -> List[np.array] :
+    def createPopulation(self) -> None :
         """
         Create Population with x size
 
         Returns:
             List: list of individu
         """
-        return [self.createIndividu() for _ in range(self.totalSize)]
+        self.population.append([self.createIndividu() for _ in range(self.totalSize)])
    
-    def fitness(self, individual : List[float], inputs : np.array, yTrue : np.array) -> Dict[str,Any]:
+    def fitness(self, individual , inputs : np.array, yTrue : np.array) -> Dict[str,Any]:
         """
         
         Fitness current Individual
@@ -102,25 +103,25 @@ class Population:
             Dict[str,Any]: [description]
         """
         info : Dict[str,Any] = {}
-
         predicted : np.array = np.dot(inputs,individual)
         yTrue_mean : np.float = np.mean(yTrue) 
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
         SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
-        Rsquared : np.float = (1 - (SSR / SST))
+        RMSEFitnessed : np.float =1 /  np.sqrt( SSR / len(y))
+        Rsquared : np.float = (1 - (RMSEFitnessed / SST))
 
-        SSE : np.float = SSR / len(yTrue)
+        SSE : np.float = RMSEFitnessed / len(y)
 
         info["Rsquared"] = Rsquared
         info["coeff"] = individual
-        info["error"] = (1 / SSE) + 0.0001
+        info["error"] = SSE
+        info["fitness"]= RMSEFitnessed
 
         return info
     
-    def evaluate_population(self,pop : List[np.array],inputs : np.array , yTrue:np.array, selectionSize : int) :
+    def evaluate_population(self, x,y,selectionSize : int) :
         """
-        
         Function to evaluate the best individual from current population
 
         Args:
@@ -129,12 +130,13 @@ class Population:
         Returns:
             None
         """
-        fitness_list : List[Dict[str,Any]] = [self.fitness(individual, inputs, yTrue) for individual in pop]
-        error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["error"])
+        fitness_list= [self.fitness(individual,x,y) for individual in self.population[0]]
+        error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["fitness"])
         best_individuals = error_list[: selectionSize]
+        self.bestIndividuals.clear()
         self.bestIndividuals.append(best_individuals)
         
-        print(f"Error {best_individuals[0]['error']} \n RSquared {best_individuals[0]['Rsquared']}")
+        print(f"Error {best_individuals[0]['error']}\n RSquared {best_individuals[0]['Rsquared']}\n Fitness : {best_individuals[0]['fitness']}")
 
 
     def mutate(self,individual : List[float], probabilityMutating : float) -> List[float]:
@@ -181,7 +183,7 @@ class Population:
     
         return [anak_haram[i] for i in index]
 
-    def create_new_generation(self,probabilityMutating : float) -> List[List[float]]:
+    def create_new_generation(self,probabilityMutating : float,probility_gene_mutating:float) -> None:
         """
         Create new population using the best individuals
 
@@ -189,22 +191,41 @@ class Population:
             best_individuals (List[float]): [description]
         """
         pasangan_sah = [sample(self.bestIndividuals[0],2) for _ in range( self.totalSize)]
-
         crossOverered_parents = [self.crossover(pasangan[0],pasangan[1]) for pasangan in pasangan_sah]
         pasangan_sah_indx = [i for i in range(self.totalSize)]
         pasanganCalonMutasi = sample(pasangan_sah_indx,floor(probabilityMutating * self.totalSize))
 
-        PasanganMutasi = [[i,self.mutate(crossOverered_parents[i],probabilityMutating)] for i in pasanganCalonMutasi]
+        PasanganMutasi = [[i,self.mutate(crossOverered_parents[i],probaiblity_gene)] for i in pasanganCalonMutasi]
         for anakMutasi in PasanganMutasi:
             crossOverered_parents[anakMutasi[0]] = anakMutasi[1]
-        return crossOverered_parents
+        self.population.clear()
+        self.population.append(crossOverered_parents)
+        
+
+
+
 
 if __name__ == "__main__":
     x,y = generate_data(100)
-    pop =Population(10,4)
-    population = pop.createPopulation()
-    individual = pop.createIndividu()
+    
+    pop =Population(100,4)
+    pop.createPopulation()
+    selectionSize = floor(0.1 * 100)
+    max_generations = 50
+
+    probability_Indiv = 0.1
+    probaiblity_gene = 0.25
+
+    bestPossible = linReg(x,y)
+    print(bestPossible)
+    terminate_ga = False
+    for i in range(max_generations + 1) :
+        pop.evaluate_population(x,y,10)
+        pop.create_new_generation(probability_Indiv,probaiblity_gene)
+        print(f"Generation {i}")
+        terminate_ga = terminate_GA(pop.bestIndividuals[0][0])
+
+    
+
     #parent1 = pop.fitness(individual,x,y)
     #parent2 = pop.fitness(individual,x,y)
-    pop.evaluate_population(population,x,y,5)
-    pop.create_new_generation(0.25)
