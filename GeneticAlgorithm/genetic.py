@@ -63,15 +63,17 @@ class Population:
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
         SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
-        RMSEFitnessed : np.float =1 /  np.sqrt( SSR / len(y))
-        Rsquared : np.float = (1 - (RMSEFitnessed / SST))
+        RMSE : np.float = np.sqrt(SSR/ len(y))
+        Rsquared : np.float = (1 - (SSR / SST))
 
-        SSE : np.float = RMSEFitnessed / len(y)
+        SSE : np.float = SSR / len(y)
+        oneDivError : np.float = 1 / SSE
 
         info["Rsquared"] = Rsquared
         info["coeff"] = individual
         info["error"] = SSE
-        info["fitness"]= RMSEFitnessed
+        info["RMSE"] = RMSE 
+        info["divByOne"] = oneDivError
 
         return info
     
@@ -86,12 +88,12 @@ class Population:
             None
         """
         fitness_list= [self.fitness(individual,x,y) for individual in self.population[0]]
-        error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["fitness"])
+        error_list : List[Dict[str,Any]] = sorted(fitness_list,key=lambda i : i["error"])
         best_individuals = error_list[: selectionSize]
         self.bestIndividuals.clear()
         self.bestIndividuals.append(best_individuals)
         
-        print(f"Error {best_individuals[0]['error']}\n RSquared {best_individuals[0]['Rsquared']}\n Fitness : {best_individuals[0]['fitness']}")
+        print(f"Error {best_individuals[0]['error']}\n RSquared {best_individuals[0]['Rsquared']}\n") 
 
 
     def mutate(self,individual : List[float], probabilityMutating : float) -> List[float]:
@@ -162,7 +164,7 @@ class Population:
 
 if __name__ == "__main__":
     x,y = generate_data(100)
-    
+    np.random.seed(123) 
     pop =Population(100,4)
     pop.createPopulation()
     selectionSize = floor(0.1 * 100)
@@ -171,14 +173,18 @@ if __name__ == "__main__":
     probability_Indiv = 0.1
     probaiblity_gene = 0.25
 
-    bestPossible = linReg(x,y)
-    print(bestPossible)
     terminate_ga = False
     for i in range(max_generations + 1) :
+        print(f"generation : {i}")
         pop.evaluate_population(x,y,10)
         pop.create_new_generation(probability_Indiv,probaiblity_gene)
-        print(f"Generation {i}")
+        
     
+    print("Nilai x : ",x[0])
+    print("Nilai Y : ",y[0])
+    
+    result = np.dot(x[0],pop.bestIndividuals[0][0]["coeff"])
+    print("Predicted = ",result)
     print(pop.bestIndividuals[0][0])
 
     #parent1 = pop.fitness(individual,x,y)
