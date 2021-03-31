@@ -64,6 +64,7 @@ class Population:
 
         SST : np.float = np.sum(np.array([(y - yTrue_mean) ** 2 for y in yTrue]),axis=None)
         SSR : np.float = np.sum(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)]),axis = None)
+    
         bias :np.float = np.mean(np.sqrt(np.array([(ytrue - ypred) ** 2 for ytrue,ypred in zip(yTrue,predicted)])))
         RMSE : np.float = np.sqrt(SSR/ len(y))
         Rsquared : np.float = (1 - (SSR / SST))
