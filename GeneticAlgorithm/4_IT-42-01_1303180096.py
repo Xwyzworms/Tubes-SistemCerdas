@@ -32,7 +32,7 @@ class Population:
         Create Individu using Real Numbers
 
         Returns:
-            List[int]: binary sequence
+            List[int]: Real sequence
         """
         return np.random.normal(size=self.Totalgenome)
     
@@ -41,7 +41,7 @@ class Population:
         Create Population with x size
 
         Returns:
-            List: list of individu
+            List: None
         """
         self.population.append([self.createIndividu() for _ in range(self.totalSize)])
    
@@ -156,15 +156,12 @@ class Population:
         pasangan_sah_indx = [i for i in range(self.totalSize)]
         pasanganCalonMutasi = sample(pasangan_sah_indx,floor(probabilityMutating * self.totalSize))
 
-        PasanganMutasi = [[i,self.mutate(crossOverered_parents[i],probaiblity_gene)] for i in pasanganCalonMutasi]
+        PasanganMutasi = [[i,self.mutate(crossOverered_parents[i],probility_gene_mutating)] for i in pasanganCalonMutasi]
         for anakMutasi in PasanganMutasi:
             crossOverered_parents[anakMutasi[0]] = anakMutasi[1]
         self.population.clear()
         self.population.append(crossOverered_parents)
         
-
-
-
 
 if __name__ == "__main__":
     x,y = generate_data(100)
