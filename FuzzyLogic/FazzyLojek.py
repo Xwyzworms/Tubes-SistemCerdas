@@ -16,7 +16,7 @@ print("\n****************************************************************")
 print("\n* Copyright of Pram, 2021                              *")
 print("\n* https://github.com/Xwyzworms                                  *")
 print("\n****************************************************************")
-print("Hello There")
+print("Hello There gw ganteng .. ")
 
 # In[1]:
 
@@ -34,6 +34,9 @@ print(np.__version__)
 
 # Eksekusi Cell ini jika ingin generate new dataset
 np.random.seed(100)
+# Ketiga fungsi dibawah ini berfungsi untuk membuat dataset
+# dengan me random seluruh nilai Minuman, Makanan, maupun Pelayanan
+
 def randomizeMinuman(totalRow):
     return np.random.randint(low = 1, high = 11,
                              size= totalRow)
@@ -44,6 +47,13 @@ def randomizePelayanan(totalRow):
     return np.random.randint(low = 1, high = 101,
                             size = totalRow)
 def createDataset():
+    """
+    Prosedur ini berfungsi untuk menggambungkan nilai
+    nilai random dari fngsi randomizeMinuman,makanan,Pelayanan
+
+    Returns:
+        [DataFrame]: [Dataframe dengan 4 kolom < id,NilaiMinuman,NilaiMakanan,NilaiPelayanan]
+    """
     df = pd.DataFrame({"id":range(0,100)})
     df["NilaiMinuman"] = randomizeMinuman(len(df))
     df["NilaiMakanan"] =  randomizeMakanan(len(df))
@@ -64,6 +74,19 @@ df
 
 
 def fungsiTrapesium(x, a, b, c, d) :
+    """
+    Fungsi mengkalkulasi nilai dari pada x ,dengan threshold a,b,c, dan d
+
+    Args:
+        x ([float]): [Nilai x , merepsentasikan nilai yang hendak ]
+        a ([float]): [Nilai a , adalah batas bawah , yang merepresentasikan nilai lower untuk fungsi keanggotaan]
+        b ([float]): [Nilai b, adalah batas atas,yang merepsentasikan nilai lower untuk fungsi keanggotaan]
+        c ([float]): [Nilai c, adalah batas bawah,yang merepsentasikan nilai high untuk fungsi keanggotaan]
+        d ([float]): [nilai d, adalah batas atas, yang merepsentasikan nilai high untuk fungsi keanggotaan]
+
+    Returns:
+        [float]: [nilai fungsi keanggotaan]
+    """
     if (x <= a or x >= d):
         return 0
     elif (x >= a and x <= b):
@@ -72,7 +95,20 @@ def fungsiTrapesium(x, a, b, c, d) :
         return 1
     elif( x > c and x <= d):
         return -(x - d) / (d - c)
+
 def fungsiSegitiga(x, a, b, c):
+    """
+    Fungsi ini mengkalkulasi nilai keanggotaan daripada x , dengan threshold a, b,c,dan d
+
+    Args:
+        x ([float]): [merepsentasikan nilai x untuk dikonversi menjadi nilai keanggotaan]
+        a ([float]): [panjang ah malas]
+        b ([float]): [description]
+        c ([float]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     if(x <= a or x >= c):
         return 0
     elif (x > a and x <= b):
@@ -86,23 +122,66 @@ def fungsiSegitiga(x, a, b, c):
 
 # Fuzzy untuk derajat keanggotaan
 class Makanan():
+    """
+    Kelas makanan, dikhusukan untuk mengevaluasi sebuah makanan, baik dari nilai enaknya maupun buruknya
+    """
     def __init__(self, x):
         self.valueOfX = x
     def makananEnak(self):
+        """
+        Nilai keanggotaan jika Enak
+
+        Returns:
+            [float]: [Nilai keanggotaan jika enak]
+        """
         return fungsiTrapesium(self.valueOfX, 6, 9, 10, 999)
     def makananSedang(self):
+        """
+        Nilai keanggotaan jika sedang
+
+        Returns:
+            [float]: [Nilai keanggotaan jika sedang]
+        """
         return fungsiSegitiga(self.valueOfX, 4, 5, 8)
     def makananNggaEnak(self):
+        """
+        Nilai keanggotaan jika tidak enak
+
+        Returns:
+            [float]: [Nilai keanggotaan jika tidak enak]
+            
+        """
         return fungsiTrapesium(self.valueOfX, -999, 0 ,3, 5)
     
 class Minuman():
+    """
+    Kelas yang dikhusukan untuk evaluasi keanggotaan Minuman
+    """
     def __init__(self,x):
         self.valueOfX = x
     def minumanEnak(self):
+        """
+        Nilai keanggotaan jika minuman enak
+
+        Returns:
+            [float]: [Nilai keanggotaan jika minuman Enak]
+        """
         return fungsiTrapesium(self.valueOfX, 7, 9, 10, 999)
     def minumanSedang(self):
+        """
+        Nilai keanggotaan jika minuman sedang
+
+        Returns:
+            [float]: [Nilai Keanggotaan jika minuman sedang]
+        """
         return fungsiSegitiga(self.valueOfX, 4, 5, 8)
     def minumanNggaEnak(self):
+        """
+        Nilai keanggotaan jika minuman tidak enak
+
+        Returns:
+            [float]: [Nilai keanggotaan jika minuman tidak enak]
+        """
         return fungsiTrapesium(self.valueOfX, -999, 0 , 3, 5)
 
 class Pelayanan():
@@ -233,6 +312,17 @@ ArrPenilainFuzzy
 # 3 representasikan sangat baik pada pelayanan, sangat tinggi untuk NK
 
 def RulesNgab(makanan, minuman, pelayanan):
+    """
+    Rules untuk inference inputan , atau fuzzy crisp 
+
+    Args:
+        makanan ([int]): [index dari pada fungsi keanggotaan makanan]
+        minuman ([int]): [index dari pada fungsi keanggotaan minuman]
+        pelayanan ([int]): [index dari pada fungsi keanggotaan pelayanan]
+
+    Returns:
+        [int]: [return index Nilai kelayakana]
+    """
     if (makanan == 0 and minuman == 0 and pelayanan == 0):
         return 0
     
@@ -332,6 +422,15 @@ def RulesNgab(makanan, minuman, pelayanan):
 
 
 def mapMakanan(x):
+    """
+    Fungsi untuk mapping nilai Index menjadi string yang mereprensatasikannya
+
+    Args:
+        x ([int]): [index dari index keanggotaan makanan]
+
+    Returns:
+        [string]: [repsentasi string dari index makanan]
+    """
     if (x == 0):
         return "nggaEnak"
     elif (x==1):
@@ -340,6 +439,15 @@ def mapMakanan(x):
         return "enak"
 
 def mapPelayanan(x):
+    """
+    Fungsi untuk mapping nilai index menjadi string yang merepsentasikannya
+
+    Args:
+        x ([x]): [index dari index keanggotaan pelayanan]
+
+    Returns:
+        [string]: [representasi string dari index Pelayanan]
+    """
     if (x == 0):
         return "buruk"
     elif (x == 1):
@@ -350,6 +458,15 @@ def mapPelayanan(x):
         return "sangat baik"
     
 def mapMinuman(x):
+    """
+    Fungsi untuk mapping nilai index menjadi string yang merepsentasikannya
+
+    Args:
+        x ([int]): [index dari index keanggotaan minuman]
+
+    Returns:
+        [int]: [representasi strign dari index Minuman]
+    """
     if (x == 0):
         return "nggaEnak"
     elif (x == 1):
@@ -359,6 +476,15 @@ def mapMinuman(x):
     
     
 def mapKualitas(x):
+    """
+    Fungsi untuk mapping nilai index menjadi String yang merepsentasikannya
+
+    Args:
+        x ([int]): [index dari index keanggotaan nilai kelayakan]
+
+    Returns:
+        [int]: [representasi string dari index kelayakan]
+    """
     if (x == 0):
         return "sangat rendah"
     elif (x == 1):
